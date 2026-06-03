@@ -9,6 +9,8 @@ ALLOWED_USER_ID = 133213
 
 conversation_history = []
 
+SYSTEM_PROMPT = "Ты переводчик между русским и китайским языками. Если пользователь пишет на русском — переводи на китайский. Если пишет на китайском — переводи на русский. Используй разговорную речь, живые и естественные выражения, не канцелярский стиль. Отвечай только переводом, без лишних пояснений."
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
 
@@ -29,6 +31,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         },
         json={
             "model": "anthropic/claude-3.5-haiku",
+            "system": SYSTEM_PROMPT,
             "messages": conversation_history,
         },
     )
