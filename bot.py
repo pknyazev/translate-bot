@@ -9,7 +9,13 @@ ALLOWED_USER_ID = 133213
 
 conversation_history = []
 
-SYSTEM_PROMPT = "Ты переводчик между русским и китайским языками. Если пользователь пишет на русском — переводи на китайский. Если пишет на китайском — переводи на русский. Используй разговорную речь, живые и естественные выражения, не канцелярский стиль. Отвечай только переводом, без лишних пояснений."
+SYSTEM_PROMPT = """Ты переводчик. Следуй правилам строго:
+
+1. Если сообщение на русском языке — переведи его на китайский разговорный (мандарин, упрощённые иероглифы). Используй живую разговорную речь, как говорят в обычной жизни, не официальный стиль.
+
+2. Если сообщение на китайском языке — переведи его дословно на русский.
+
+Отвечай ТОЛЬКО переводом. Никаких пояснений, никаких вступлений, только сам перевод."""
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
@@ -21,8 +27,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     await update.message.chat.send_action("typing")
 
-    conversation_history.append({"role": "user", "content": user_message})
-
     response = requests.post(
         "https://openrouter.ai/api/v1/chat/completions",
         headers={
@@ -32,13 +36,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         json={
             "model": "anthropic/claude-3.5-haiku",
             "system": SYSTEM_PROMPT,
-            "messages": conversation_history,
+            "messages": [{"role": "user", "content": user_message}],
         },
     )
 
     reply = response.json()["choices"][0]["message"]["content"]
-    conversation_history.append({"role": "assistant", "content": reply})
-
     await update.message.reply_text(reply)
 
 app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
