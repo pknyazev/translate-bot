@@ -7,8 +7,6 @@ TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 OPENROUTER_KEY = os.environ["OPENROUTER_KEY"]
 ALLOWED_USER_ID = 133213
 
-conversation_history = []
-
 SYSTEM_PROMPT = """Ты переводчик. Следуй правилам строго:
 
 1. Если сообщение на русском языке — переведи его на китайский разговорный (мандарин, упрощённые иероглифы). Используй живую разговорную речь, как говорят в обычной жизни, не официальный стиль.
@@ -35,8 +33,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         },
         json={
             "model": "anthropic/claude-3.5-haiku",
-            "system": SYSTEM_PROMPT,
-            "messages": [{"role": "user", "content": user_message}],
+            "messages": [
+                {"role": "user", "content": SYSTEM_PROMPT},
+                {"role": "assistant", "content": "Понял, буду переводить."},
+                {"role": "user", "content": user_message},
+            ],
         },
     )
 
