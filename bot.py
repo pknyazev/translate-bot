@@ -44,7 +44,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         },
     )
 
-    reply = response.json()["choices"][0]["message"]["content"]
+    data = response.json()
+
+    if "choices" not in data:
+        error_msg = data.get("error", {}).get("message", str(data))
+        await update.message.reply_text(f"Ошибка: {error_msg}")
+        return
+
+    reply = data["choices"][0]["message"]["content"]
     await update.message.reply_text(reply)
 
 app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
