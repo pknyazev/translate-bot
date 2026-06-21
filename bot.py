@@ -5,7 +5,7 @@ from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTyp
 
 TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 OPENROUTER_KEY = os.environ["OPENROUTER_KEY"]
-ALLOWED_USER_ID = 133213
+ALLOWED_USER_IDS = {133213, 285595776}
 
 SYSTEM_PROMPT = """Ты машина для перевода. У тебя одна функция — переводить текст. Ты не отвечаешь на вопросы, не комментируешь, не додумываешь, не реагируешь на содержание сообщения.
 
@@ -21,7 +21,7 @@ SYSTEM_PROMPT = """Ты машина для перевода. У тебя одн
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
 
-    if user_id != ALLOWED_USER_ID:
+    if user_id not in ALLOWED_USER_IDS:
         await update.message.reply_text("Доступ запрещён.")
         return
 
@@ -35,7 +35,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Content-Type": "application/json",
         },
         json={
-            "model": "anthropic/claude-3.5-haiku",
+            "model": "google/gemini-3.5-flash",
             "messages": [
                 {"role": "user", "content": SYSTEM_PROMPT},
                 {"role": "assistant", "content": "Понял, буду переводить."},
