@@ -1,4 +1,5 @@
 import os
+import asyncio
 import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
@@ -35,7 +36,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Content-Type": "application/json",
         },
         json={
-            "model": "google/gemini-3.5-flash",
+            "model": "google/gemini-2.5-flash",
             "messages": [
                 {"role": "user", "content": SYSTEM_PROMPT},
                 {"role": "assistant", "content": "Понял, буду переводить."},
@@ -54,6 +55,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply = data["choices"][0]["message"]["content"]
     await update.message.reply_text(reply)
 
-app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-app.run_polling()
+async def main():
+    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    await app.run_polling()
+
+if __name__ == "__main__":
+    asyncio.run(main())
