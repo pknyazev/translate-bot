@@ -1,7 +1,6 @@
 import os
 import asyncio
 import aiohttp
-import json
 
 TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 OPENROUTER_KEY = os.environ["OPENROUTER_KEY"]
@@ -35,6 +34,46 @@ async def translate(session, text):
             "messages": [
                 {"role": "user", "content": SYSTEM_PROMPT},
                 {"role": "assistant", "content": "Понял, буду переводить."},
+                {"role": "user", "content": text},
+            ],
+        },
+    ) as resp:
+        data = await resp.json()
+        if "choices" not in data:
+            return "Ошибка: " + data.get("error", {}).get("message", str(data))
+        return data["choices"][0]["message"]["content"]
+
+async def main():
+    offset = 0
+    async with aiohttp.ClientSession() as session:
+        while True:
+            try:
+                async with session.get(
+                    f"{TG_API}/getUpdates",
+                    params={"offset": offset, "timeout": 30},
+                    timeout=aiohttp.ClientTimeout(total=40)
+                ) as resp:
+                    data = await resp.json()
+                    for update in data.get("result", []):
+                        offset = update["update_id"] + 1
+                        msg = update.get("message", {})
+                        user_id = msg.get("from", {}).get("id")
+                        chat_id = msg.get("chat", {}).get("id")
+                        text = msg.get("text", "")
+                        if not text or text.startswith("/"):
+                            continue
+                        if user_id not in ALLOWED_USER_IDS:
+                            await send_message(session, chat_id, "Доступ запрещён.")
+                            continue
+                        await send_typing(session, chat_id)
+                        reply = await translate(session, text)
+                        await send_message(session, chat_id, reply)
+            except Exception as e:
+                print(f"Error: {e}")
+                await asyncio.sleep(5)
+
+if __name__ == "__main__":
+    asyncio.run(main())                {"role": "assistant", "content": "Понял, буду переводить."},
                 {"role": "user", "content": text},
             ],
         },
