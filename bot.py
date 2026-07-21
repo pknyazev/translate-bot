@@ -30,7 +30,7 @@ async def translate(session, text):
         "https://openrouter.ai/api/v1/chat/completions",
         headers={"Authorization": f"Bearer {OPENROUTER_KEY}", "Content-Type": "application/json"},
         json={
-            "model": "google/gemini-2.5-flash",
+            "model": "openai/gpt-5.6-luna",
             "messages": [
                 {"role": "user", "content": SYSTEM_PROMPT},
                 {"role": "assistant", "content": "Понял, буду переводить."},
